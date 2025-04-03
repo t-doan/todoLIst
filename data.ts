@@ -1,29 +1,53 @@
-//exported data, and write data
+// data.ts
 interface Data {
   entries: Entry[];
   nextEntryId: number;
 }
 
-const dataKey = `todo-list`; // create a data-key
+interface Entry {
+  taskId: number;
+  task: string;
+  details?: string;
+  dueDate: string;
+  dueTime: string;
+}
 
-const data = readData();
+const dataKey = "todo-list";
+
+let data = readData();
 
 function readData(): Data {
-  let data: Data;
-  const localData = localStorage.getItem(dataKey); //access local storage and get data with dataKey
-  if (localData){
-    data = JSON.parse(localData) as Data; //convert JSON to JS object
-  } else{
-    data  ={
-      entries: [],
-      nextEntryId: 1,
-    };
+  const localData = localStorage.getItem(dataKey);
+  if (localData) {
+    return JSON.parse(localData) as Data;
   }
-  return data;
+  return {
+    entries: [],
+    nextEntryId: 1,
+  };
 }
 
-
-function writeData(): void{
-  const dataJSON = JSON.stringify(data); //convert data to JSON
-  localStorage.setItem(dataKey, dataJSON);
+function writeData(): void {
+  localStorage.setItem(dataKey, JSON.stringify(data));
 }
+
+function addEntry(entry: Omit<Entry, "taskId">): Entry {
+  const newEntry = {
+    ...entry,
+    taskId: data.nextEntryId++,
+  };
+  data.entries.push(newEntry);
+  writeData();
+  return newEntry;
+}
+
+function getEntries(): Entry[] {
+  return [...data.entries];
+}
+
+function deleteEntry(taskId: number): void {
+  data.entries = data.entries.filter((entry) => entry.taskId !== taskId);
+  writeData();
+}
+
+export { addEntry, getEntries, deleteEntry, type Entry };
